@@ -8,6 +8,6 @@ export function pinoLogger() {
   return logger({
     pino: pino({
       level: env.LOG_LEVEL || "info",
-    }, env.NODE_ENV === "production" ? undefined : pretty()),
+    }, pretty({ colorize: true })),
   });
 }
