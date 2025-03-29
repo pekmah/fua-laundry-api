@@ -1,0 +1,1 @@
+DROP INDEX IF EXISTS `laundry_categories_unit_price_unique`;

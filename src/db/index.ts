@@ -6,6 +6,7 @@ import env from "@/env";
 import * as schema from "./schema";
 import * as auth from "./schema/auth";
 import * as laundryCategories from "./schema/laundry-categories";
+import * as order from "./schema/order";
 
 const client = createClient({
   url: env.DATABASE_URL,
@@ -17,6 +18,7 @@ const db = drizzle(client, {
     ...schema,
     ...auth,
     ...laundryCategories,
+    ...order,
   },
 });
 

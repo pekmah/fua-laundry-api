@@ -1,22 +1,27 @@
 import { relations } from "drizzle-orm";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import { z } from "zod";
 
 import { laundryCategories } from "./laundry-categories";
-
-export const laundryItems = sqliteTable("laundry_items", {
-  id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
-  laundryCategoryId: integer("laundry_category_id", { mode: "number" }).notNull().references(() => laundryCategories.id),
-  quantity: integer("quantity", { mode: "number" }).notNull(),
-  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()).$onUpdate(() => new Date()),
-});
 
 // Order schema
 export const order = sqliteTable("orders", {
   id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
-  laundryItemsId: integer("laundry_items_id", { mode: "number" }).notNull().references(() => laundryItems.id),
+  customerName: text("customer_name").notNull(),
+  customerPhone: text("customer_phone").notNull(),
   totalAmount: integer("total_amount", { mode: "number" }).notNull(),
   paymentAmount: integer("payment_amount", { mode: "number" }).notNull(),
+  status: text("status").notNull().default("pending"),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()).$onUpdate(() => new Date()),
+});
+
+export const laundryItem = sqliteTable("laundry_items", {
+  id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
+  laundryCategoryId: integer("laundry_category_id", { mode: "number" }).notNull().references(() => laundryCategories.id),
+  orderId: integer("order_id", { mode: "number" }).notNull().references(() => order.id),
+  quantity: integer("quantity", { mode: "number" }).notNull(),
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
   updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()).$onUpdate(() => new Date()),
 });
@@ -34,15 +39,15 @@ export const payment = sqliteTable("payments", {
 
 // Defines the relationship between laundry items and their categories & orders.
 export const laundryItemsRelationship = relations(
-  laundryItems,
+  laundryItem,
   ({ one }) => ({
     laundryCategory: one(laundryCategories, {
-      fields: [laundryItems.laundryCategoryId],
+      fields: [laundryItem.laundryCategoryId],
       references: [laundryCategories.id],
     }),
     order: one(order, {
-      fields: [laundryItems.id],
-      references: [order.laundryItemsId], // This is the foreign key in the orders table.
+      fields: [laundryItem.orderId],
+      references: [order.id], // This is the foreign key in the orders table.
     }),
   }),
 );
@@ -62,7 +67,41 @@ export const paymentRelationship = relations(
 export const orderRelationship = relations(
   order,
   ({ many }) => ({
-    laundryItems: many(laundryItems),
+    laundryItems: many(laundryItem),
     payments: many(payment),
   }),
 );
+
+export const createOrderSchema = createInsertSchema(order).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).merge(
+  z.object({
+    laundryItems: z.array(
+      createInsertSchema(laundryItem).pick({
+        laundryCategoryId: true,
+        quantity: true,
+      }),
+    ),
+  }),
+);
+
+export const createPaymentSchema = createInsertSchema(payment).omit({
+  id: true,
+  balance: true,
+  orderId: true,
+  createdAt: true,
+  updatedAt: true,
+
+});
+
+export const selectOrderSchema = createSelectSchema(order);
+
+export const orderCreateSchema = z.object({
+  data: selectOrderSchema,
+});
+
+export const selectPaymentSchema = createSelectSchema(payment);
+
+export const selectLaundryItemSchema = createSelectSchema(laundryItem);
