@@ -64,13 +64,6 @@
       "when": 1743353206761,
       "tag": "0008_quick_multiple_man",
       "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "6",
-      "when": 1743353248977,
-      "tag": "0009_mean_puck",
-      "breakpoints": true
     }
   ]
 }
