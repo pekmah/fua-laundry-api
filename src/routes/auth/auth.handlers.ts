@@ -48,6 +48,7 @@ export const login: AppRouteHandler<LoginRoute> = async (c) => {
   return c.json({
     token,
     message: "User login successful",
+    user,
   }, HttpStatusCodes.OK);
 };
 
@@ -62,7 +63,7 @@ export const signup: AppRouteHandler<SignupRoute> = async (c) => {
       return operators.eq(fields.email, email);
     },
   });
-  if(existingUser) {
+  if (existingUser) {
     return c.json({
       message: "User already exists. Please login.",
     }, HttpStatusCodes.CONFLICT);
@@ -85,5 +86,6 @@ export const signup: AppRouteHandler<SignupRoute> = async (c) => {
   return c.json({
     message: "User signup successful",
     token,
+    user: newUser,
   }, HttpStatusCodes.OK);
 };

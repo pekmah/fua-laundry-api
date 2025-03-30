@@ -61,6 +61,7 @@ export const loginResponseSchema = z.object({
   token: z.string()
     .nonempty("Token cannot be empty."),
   message: z.string(),
+  user: selectUsersSchema,
 });
 
 export const patchUsersSchema = insertUsersSchema.partial().omit({
