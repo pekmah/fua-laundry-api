@@ -4,13 +4,16 @@ import type { AppRouteHandler } from "@/lib/types";
 
 import db from "@/db";
 import { laundryItem, order, payment } from "@/db/schema/order";
+import { generateOrderId } from "@/lib/utils";
 
 import type { Create, GetOne, List, ListLaundryItems, ListPayments, MakePayment } from "./orders.routes";
 
 export const create: AppRouteHandler<Create> = async (c) => {
   const { laundryItems, ...data } = c.req.valid("json");
 
-  const [_order] = await db.insert(order).values({ ...data }).returning();
+  const orderId = generateOrderId();
+
+  const [_order] = await db.insert(order).values({ ...data, orderNumber: orderId }).returning();
 
   // Check if laundryItems is provided and not empty
   if (laundryItems.length) {
@@ -33,7 +36,7 @@ export const makePayment: AppRouteHandler<MakePayment> = async (c) => {
   // Check if order exists
   const orderExists = await db.query.order.findFirst({
     where(fields, operators) {
-      return operators.eq(fields.id, id);
+      return operators.eq(fields.orderNumber, id);
     },
   });
 
@@ -49,7 +52,7 @@ export const makePayment: AppRouteHandler<MakePayment> = async (c) => {
   // Get already made payments
   const existingPayments = await db.query.payment.findMany({
     where(fields, operators) {
-      return operators.eq(fields.orderId, id);
+      return operators.eq(fields.orderId, orderExists.id);
     },
   });
   const totalPayments = existingPayments.reduce((acc, payment) => acc + payment.amount, 0);
@@ -112,7 +115,7 @@ export const getOne: AppRouteHandler<GetOne> = async (c) => {
 
   const orderExists = await db.query.order.findFirst({
     where(fields, operators) {
-      return operators.eq(fields.id, id);
+      return operators.eq(fields.orderNumber, id);
     },
     with: {
       laundryItems: true,

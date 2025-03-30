@@ -1,7 +1,9 @@
+import { z } from "@hono/zod-openapi";
 import { relations } from "drizzle-orm";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
-import { z } from "zod";
+
+import env from "@/env";
 
 import { laundryCategories } from "./laundry-categories";
 
@@ -13,6 +15,7 @@ export const order = sqliteTable("orders", {
   totalAmount: integer("total_amount", { mode: "number" }).notNull(),
   paymentAmount: integer("payment_amount", { mode: "number" }).notNull(),
   status: text("status").notNull().default("pending"),
+  orderNumber: text("order_number").notNull().default("LNDXXXX"),
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
   updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()).$onUpdate(() => new Date()),
 });
@@ -105,3 +108,18 @@ export const orderCreateSchema = z.object({
 export const selectPaymentSchema = createSelectSchema(payment);
 
 export const selectLaundryItemSchema = createSelectSchema(laundryItem);
+
+// order number schema. should be of format: env.ORDER_PREFIX + 5 digit random number from current date
+export const orderNumberSchema = z.object({
+  id: z.coerce.string().regex(
+    new RegExp(`^${env.ORDER_PREFIX}\\d{5}$`),
+  ).openapi({
+    param: {
+      name: "id",
+      in: "path",
+      required: true,
+    },
+    required: ["id"],
+    example: "LND12345",
+  }),
+});

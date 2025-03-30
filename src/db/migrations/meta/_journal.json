@@ -57,6 +57,20 @@
       "when": 1743099330261,
       "tag": "0007_violet_johnny_storm",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1743353206761,
+      "tag": "0008_quick_multiple_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1743353248977,
+      "tag": "0009_mean_puck",
+      "breakpoints": true
     }
   ]
 }
