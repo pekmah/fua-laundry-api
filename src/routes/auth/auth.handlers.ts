@@ -48,7 +48,12 @@ export const login: AppRouteHandler<LoginRoute> = async (c) => {
   return c.json({
     token,
     message: "User login successful",
-    user,
+    user: {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      createdAt: user.createdAt,
+    },
   }, HttpStatusCodes.OK);
 };
 
@@ -86,6 +91,11 @@ export const signup: AppRouteHandler<SignupRoute> = async (c) => {
   return c.json({
     message: "User signup successful",
     token,
-    user: newUser,
+    user: {
+      id: newUser.id,
+      email: newUser.email,
+      name: newUser.name,
+      createdAt: newUser.createdAt,
+    },
   }, HttpStatusCodes.OK);
 };
