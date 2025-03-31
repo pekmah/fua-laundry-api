@@ -40,6 +40,15 @@ export const payment = sqliteTable("payments", {
   updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()).$onUpdate(() => new Date()),
 });
 
+export const log = sqliteTable("logs", {
+  id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
+  orderId: integer("order_id", { mode: "number" }).notNull().references(() => order.id),
+  stage: text("stage").notNull(),
+  description: text("description").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()).$onUpdate(() => new Date()),
+});
+
 // Defines the relationship between laundry items and their categories & orders.
 export const laundryItemsRelationship = relations(
   laundryItem,
@@ -66,12 +75,23 @@ export const paymentRelationship = relations(
   }),
 );
 
+export const logRelationship = relations(
+  log,
+  ({ one }) => ({
+    order: one(order, {
+      fields: [log.orderId],
+      references: [order.id],
+    }), // This is the foreign key in the orders table.
+  }),
+);
+
 // Relationship between orders and laundry items: one order can have many laundry items.
 export const orderRelationship = relations(
   order,
   ({ many }) => ({
     laundryItems: many(laundryItem),
     payments: many(payment),
+    logs: many(log),
   }),
 );
 
