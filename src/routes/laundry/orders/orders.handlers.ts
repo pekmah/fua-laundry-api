@@ -1,9 +1,11 @@
+import { eq } from "drizzle-orm";
 import * as HttpStatusCodes from "stoker/http-status-codes";
 
 import type { AppRouteHandler } from "@/lib/types";
 
 import db from "@/db";
-import { laundryItem, order, payment } from "@/db/schema/order";
+import { laundryItem, log, order, payment } from "@/db/schema/order";
+import { ORDER_STAGES } from "@/lib/stages";
 import { generateOrderId } from "@/lib/utils";
 
 import type { Create, GetOne, List, ListLaundryItems, ListPayments, MakePayment } from "./orders.routes";
@@ -13,7 +15,14 @@ export const create: AppRouteHandler<Create> = async (c) => {
 
   const orderId = generateOrderId();
 
-  const [_order] = await db.insert(order).values({ ...data, orderNumber: orderId }).returning();
+  const [_order] = await db.insert(order).values({ ...data, orderNumber: orderId, status: ORDER_STAGES[1] }).returning();
+
+  // record logs
+  await db.insert(log).values({
+    orderId: _order.id,
+    stage: ORDER_STAGES[1],
+    description: "Order created",
+  });
 
   // Check if laundryItems is provided and not empty
   if (laundryItems.length) {
@@ -57,6 +66,18 @@ export const makePayment: AppRouteHandler<MakePayment> = async (c) => {
   });
   const totalPayments = existingPayments.reduce((acc, payment) => acc + payment.amount, 0);
   const currentBalance = orderExists.totalAmount - totalPayments;
+
+  // check if is first payment
+  if (existingPayments.length === 0) {
+    await db.insert(log).values({
+      orderId: orderExists.id,
+      stage: ORDER_STAGES[2],
+      description: `KES ${data?.amount} Payment Made and order is processing.`,
+    });
+
+    // update order status
+    await db.update(order).set({ status: ORDER_STAGES[2] }).where(eq(order.id, orderExists.id));
+  }
 
   // Check if balance is <= 0
   if (currentBalance <= 0) {
