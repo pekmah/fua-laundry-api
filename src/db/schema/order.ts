@@ -35,7 +35,7 @@ export const payment = sqliteTable("payments", {
   orderId: integer("order_id", { mode: "number" }).notNull().references(() => order.id),
   paymentMethod: text("payment_method").notNull(),
   amount: integer("amount", { mode: "number" }).notNull(),
-  balance: integer("balance", { mode: "number" }).notNull(),
+  otherDetails: text("other_details").default(""),
   createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
   updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()).$onUpdate(() => new Date()),
 });
