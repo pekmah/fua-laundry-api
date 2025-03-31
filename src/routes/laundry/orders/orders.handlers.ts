@@ -81,6 +81,7 @@ export const list: AppRouteHandler<List> = async (c) => {
         },
       },
       payments: true,
+      logs: true,
     },
     orderBy(fields, { desc }) {
       return desc(fields.createdAt);
@@ -125,8 +126,13 @@ export const getOne: AppRouteHandler<GetOne> = async (c) => {
       return operators.eq(fields.orderNumber, id);
     },
     with: {
-      laundryItems: true,
+      laundryItems: {
+        with: {
+          laundryCategory: true, // Include the related laundryCategory
+        },
+      },
       payments: true,
+      logs: true,
     },
   });
 
