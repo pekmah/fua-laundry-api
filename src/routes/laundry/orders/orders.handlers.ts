@@ -78,6 +78,9 @@ export const list: AppRouteHandler<List> = async (c) => {
       laundryItems: true,
       payments: true,
     },
+    orderBy(fields, { desc }) {
+      return desc(fields.createdAt);
+    },
   });
 
   return c.json(orders, HttpStatusCodes.OK);
