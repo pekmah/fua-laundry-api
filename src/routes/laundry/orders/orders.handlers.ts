@@ -75,7 +75,11 @@ export const makePayment: AppRouteHandler<MakePayment> = async (c) => {
 export const list: AppRouteHandler<List> = async (c) => {
   const orders = await db.query.order.findMany({
     with: {
-      laundryItems: true,
+      laundryItems: {
+        with: {
+          laundryCategory: true, // Include the related laundryCategory
+        },
+      },
       payments: true,
     },
     orderBy(fields, { desc }) {
