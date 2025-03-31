@@ -68,7 +68,7 @@ export const makePayment: AppRouteHandler<MakePayment> = async (c) => {
     );
   }
 
-  const [inserted] = await db.insert(payment).values({ ...data, balance: currentBalance, orderId: orderExists.id }).returning();
+  const [inserted] = await db.insert(payment).values({ ...data, orderId: orderExists.id }).returning();
   return c.json(inserted, HttpStatusCodes.OK);
 };
 

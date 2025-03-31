@@ -92,7 +92,6 @@ export const createOrderSchema = createInsertSchema(order).omit({
 
 export const createPaymentSchema = createInsertSchema(payment).omit({
   id: true,
-  balance: true,
   orderId: true,
   createdAt: true,
   updatedAt: true,
