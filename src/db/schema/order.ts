@@ -111,7 +111,7 @@ export const selectLaundryItemSchema = createSelectSchema(laundryItem);
 // order number schema. should be of format: env.ORDER_PREFIX + 5 digit random number from current date
 export const orderNumberSchema = z.object({
   id: z.coerce.string().regex(
-    new RegExp(`^${env.ORDER_PREFIX}\\d{5}$`),
+    new RegExp(`^${env.ORDER_PREFIX}\\d{6}$`),
   ).openapi({
     param: {
       name: "id",
