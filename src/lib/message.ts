@@ -3,7 +3,7 @@ import env from "@/env";
 import { createTextParameter, renderMetaUrl } from "./utils";
 
 export enum TemplateName {
-  CREATE_LAUNDRY_ORDER = "create_laundry_order",
+  CREATE_LAUNDRY_ORDER = "laundry_order",
 
 }
 
