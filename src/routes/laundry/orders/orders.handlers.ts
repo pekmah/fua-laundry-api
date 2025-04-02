@@ -4,14 +4,14 @@ import * as HttpStatusCodes from "stoker/http-status-codes";
 import type { AppRouteHandler } from "@/lib/types";
 
 import db from "@/db";
-import { laundryItem, log, order, payment } from "@/db/schema/order";
+import { image, laundryItem, log, order, payment } from "@/db/schema/order";
 import { ORDER_STAGES } from "@/lib/stages";
 import { generateOrderId } from "@/lib/utils";
 
 import type { Create, GetOne, List, ListLaundryItems, ListPayments, MakePayment } from "./orders.routes";
 
 export const create: AppRouteHandler<Create> = async (c) => {
-  const { laundryItems, ...data } = c.req.valid("json");
+  const { laundryItems, images, ...data } = c.req.valid("json");
 
   const orderId = generateOrderId();
 
@@ -31,6 +31,17 @@ export const create: AppRouteHandler<Create> = async (c) => {
         orderId: _order.id,
         laundryCategoryId: item.laundryCategoryId,
         quantity: item.quantity,
+      });
+    }
+  }
+
+  // save images
+  if (images.length) {
+    for (const img of images) {
+      await db.insert(image).values({
+        orderId: _order.id,
+        url: img.url,
+        publicId: img.publicId,
       });
     }
   }
