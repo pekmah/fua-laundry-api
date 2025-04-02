@@ -19,6 +19,13 @@ const EnvSchema = z.object({
   AUTH_SECRET: z.string(),
   DATABASE_AUTH_TOKEN: z.string().optional(),
   ORDER_PREFIX: z.string().default("LND"),
+
+  META_PHONE_NUMBER: z.string(),
+  META_URL: z.string(),
+  META_URL_VERSION: z.string(),
+  META_SENDER_ID: z.string(),
+  META_WBAID: z.string(),
+  META_API_KEY: z.string(),
 }).superRefine((input, ctx) => {
   if (input.NODE_ENV === "production" && !input.DATABASE_AUTH_TOKEN) {
     ctx.addIssue({

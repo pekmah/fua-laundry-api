@@ -58,6 +58,18 @@ export const image = sqliteTable("images", {
   updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()).$onUpdate(() => new Date()),
 });
 
+export const message = sqliteTable("messages", {
+  id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
+  status: text("status").notNull().default("created"),
+  whatsappId: text("whatsapp_id"),
+  recipient: text("recipient").notNull(),
+  templateName: text("template_name").notNull(),
+  payload: text("payload").notNull(),
+  orderId: integer("order_id", { mode: "number" }).notNull().references(() => order.id),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()).$onUpdate(() => new Date()),
+});
+
 // Defines the relationship between laundry items and their categories & orders.
 export const laundryItemsRelationship = relations(
   laundryItem,
@@ -105,6 +117,17 @@ export const imageRelationship = relations(
   }),
 );
 
+// message relationship
+export const messageRelationship = relations(
+  message,
+  ({ one }) => ({
+    order: one(order, {
+      fields: [message.orderId],
+      references: [order.id],
+    }), // This is the foreign key in the orders table.
+  }),
+);
+
 // Relationship between orders and laundry items: one order can have many laundry items.
 export const orderRelationship = relations(
   order,
@@ -113,6 +136,7 @@ export const orderRelationship = relations(
     payments: many(payment),
     logs: many(log),
     images: many(image),
+    messages: many(message),
   }),
 );
 

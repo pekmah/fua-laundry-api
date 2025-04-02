@@ -27,6 +27,10 @@ export const create = createRoute({
       createErrorSchema(createOrderSchema),
       "The validation error(s)",
     ),
+    [HttpStatusCodes.BAD_REQUEST]: jsonContent(
+      notFoundSchema,
+      "The validation error(s)",
+    ),
   },
 });
 

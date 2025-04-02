@@ -4,14 +4,25 @@ import * as HttpStatusCodes from "stoker/http-status-codes";
 import type { AppRouteHandler } from "@/lib/types";
 
 import db from "@/db";
-import { image, laundryItem, log, order, payment } from "@/db/schema/order";
+import { image, laundryItem, log, message, order, payment } from "@/db/schema/order";
+import { sendWhatsappOrderMessage } from "@/lib/message";
 import { ORDER_STAGES } from "@/lib/stages";
-import { generateOrderId } from "@/lib/utils";
+import { generateOrderId, validatePhoneNumber } from "@/lib/utils";
 
 import type { Create, GetOne, List, ListLaundryItems, ListPayments, MakePayment } from "./orders.routes";
 
 export const create: AppRouteHandler<Create> = async (c) => {
   const { laundryItems, images, ...data } = c.req.valid("json");
+  const validatedPhoneNumber = validatePhoneNumber(data.customerPhone);
+
+  if (validatedPhoneNumber.status === "error") {
+    return c.json(
+      {
+        message: "Invalid phone number",
+      },
+      HttpStatusCodes.BAD_REQUEST,
+    );
+  }
 
   const orderId = generateOrderId();
 
@@ -45,6 +56,28 @@ export const create: AppRouteHandler<Create> = async (c) => {
       });
     }
   }
+
+  // send whatsapp message
+  const msg = await sendWhatsappOrderMessage({
+    recipientPhone: validatedPhoneNumber.phone,
+    payload: {
+      customerName: data.customerName,
+      orderId: _order.orderNumber,
+      totalAmount: data.totalAmount.toString(),
+      pickupDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toLocaleDateString("en-GB"),
+
+    },
+  });
+
+  // save message
+  await db.insert(message).values({
+    orderId: _order.id,
+    status: msg.messages[0].message_status,
+    whatsappId: msg.messages[0].id,
+    recipient: validatedPhoneNumber.phone,
+    templateName: "CREATE_LAUNDRY_ORDER",
+    payload: JSON.stringify(msg),
+  });
 
   return c.json({ message: "test", data: _order }, HttpStatusCodes.CREATED);
 };
