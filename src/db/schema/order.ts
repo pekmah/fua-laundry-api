@@ -49,6 +49,15 @@ export const log = sqliteTable("logs", {
   updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()).$onUpdate(() => new Date()),
 });
 
+export const image = sqliteTable("images", {
+  id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
+  orderId: integer("order_id", { mode: "number" }).notNull().references(() => order.id),
+  url: text("url").notNull(),
+  publicId: text("public_id").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(() => new Date()).$onUpdate(() => new Date()),
+});
+
 // Defines the relationship between laundry items and their categories & orders.
 export const laundryItemsRelationship = relations(
   laundryItem,
@@ -85,6 +94,17 @@ export const logRelationship = relations(
   }),
 );
 
+// image relationship
+export const imageRelationship = relations(
+  image,
+  ({ one }) => ({
+    order: one(order, {
+      fields: [image.orderId],
+      references: [order.id],
+    }), // This is the foreign key in the orders table.
+  }),
+);
+
 // Relationship between orders and laundry items: one order can have many laundry items.
 export const orderRelationship = relations(
   order,
@@ -92,6 +112,7 @@ export const orderRelationship = relations(
     laundryItems: many(laundryItem),
     payments: many(payment),
     logs: many(log),
+    images: many(image),
   }),
 );
 
@@ -105,6 +126,12 @@ export const createOrderSchema = createInsertSchema(order).omit({
       createInsertSchema(laundryItem).pick({
         laundryCategoryId: true,
         quantity: true,
+      }),
+    ),
+    images: z.array(
+      createInsertSchema(image).pick({
+        url: true,
+        publicId: true,
       }),
     ),
   }),
