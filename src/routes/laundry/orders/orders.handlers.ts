@@ -103,6 +103,7 @@ export const list: AppRouteHandler<List> = async (c) => {
       },
       payments: true,
       logs: true,
+      images: true,
     },
     orderBy(fields, { desc }) {
       return desc(fields.createdAt);
@@ -154,6 +155,7 @@ export const getOne: AppRouteHandler<GetOne> = async (c) => {
       },
       payments: true,
       logs: true,
+      images: true,
     },
   });
 
