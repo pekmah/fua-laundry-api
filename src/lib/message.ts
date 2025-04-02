@@ -1,3 +1,5 @@
+import db from "@/db";
+import { message } from "@/db/schema/order";
 import env from "@/env";
 
 import { createTextParameter, renderMetaUrl } from "./utils";
@@ -98,4 +100,45 @@ export async function sendWhatsappOrderMessage({
   }
 
   return await response.json();
+}
+
+interface IOrderImagesMessage {
+  recipientPhone: string;
+  imageUrls: string[];
+  orderId: number;
+}
+export async function sendOrderImagesMessage({ recipientPhone, imageUrls, orderId }: IOrderImagesMessage) {
+  const baseUrl = renderMetaUrl();
+
+  for (const url of imageUrls) {
+    const imageMessage = {
+      messaging_product: "whatsapp",
+      recipient_type: "individual",
+      to: "254790923387",
+      type: "image",
+      image: {
+        link: url,
+      },
+    };
+
+    const response = await fetch(`${baseUrl}/messages`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${env.META_API_KEY}`,
+      },
+      body: JSON.stringify(imageMessage),
+    });
+
+    const responseData: IMessageResponse = await response.json();
+
+    await db.insert(message).values({
+      orderId,
+      status: responseData.messages[0].message_status,
+      whatsappId: responseData.messages[0].id,
+      recipient: recipientPhone,
+      templateName: "CREATE_LAUNDRY_ORDER",
+      payload: JSON.stringify(url),
+    });
+  }
 }

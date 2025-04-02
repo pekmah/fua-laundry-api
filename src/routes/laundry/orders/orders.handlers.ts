@@ -5,7 +5,7 @@ import type { AppRouteHandler } from "@/lib/types";
 
 import db from "@/db";
 import { image, laundryItem, log, message, order, payment } from "@/db/schema/order";
-import { sendWhatsappOrderMessage } from "@/lib/message";
+import { sendOrderImagesMessage, sendWhatsappOrderMessage } from "@/lib/message";
 import { ORDER_STAGES } from "@/lib/stages";
 import { generateOrderId, validatePhoneNumber } from "@/lib/utils";
 
@@ -77,6 +77,12 @@ export const create: AppRouteHandler<Create> = async (c) => {
     recipient: validatedPhoneNumber.phone,
     templateName: "CREATE_LAUNDRY_ORDER",
     payload: JSON.stringify(msg),
+  });
+
+  await sendOrderImagesMessage({
+    recipientPhone: validatedPhoneNumber.phone,
+    imageUrls: images.map(img => img.url),
+    orderId: _order.id,
   });
 
   return c.json({ message: "test", data: _order }, HttpStatusCodes.CREATED);
