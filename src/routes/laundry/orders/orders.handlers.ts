@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 import * as HttpStatusCodes from "stoker/http-status-codes";
 
 import type { AppRouteHandler } from "@/lib/types";
@@ -9,7 +9,7 @@ import { sendOrderImagesMessage, sendWhatsappOrderMessage } from "@/lib/message"
 import { ORDER_STAGES } from "@/lib/stages";
 import { generateOrderId, validatePhoneNumber } from "@/lib/utils";
 
-import type { Create, GetOne, List, ListLaundryItems, ListPayments, MakePayment } from "./orders.routes";
+import type { Create, GetOne, GetReport, List, ListLaundryItems, ListPayments, MakePayment } from "./orders.routes";
 
 export const create: AppRouteHandler<Create> = async (c) => {
   const { laundryItems, images, ...data } = c.req.valid("json");
@@ -238,4 +238,59 @@ export const getOne: AppRouteHandler<GetOne> = async (c) => {
   }
 
   return c.json(orderExists, HttpStatusCodes.OK);
+};
+
+// report
+export const getReport: AppRouteHandler<GetReport> = async (c) => {
+  const { from, to, page = 1, limit = 10 } = c.req.valid("query");
+
+  const offset = (page - 1) * limit;
+
+  const whereConditions = [];
+
+  if (from) {
+    whereConditions.push(gte(order.createdAt, new Date(from)));
+  }
+
+  if (to) {
+    whereConditions.push(lte(order.createdAt, new Date(to)));
+  }
+
+  const whereClause = whereConditions.length > 0 ? and(...whereConditions) : undefined;
+
+  // Get total count
+  const totalCountResult = await db.select({ count: sql<number>`count(*)` })
+    .from(order)
+    .where(whereClause);
+
+  const totalCount = totalCountResult[0]?.count ?? 0;
+  const totalPages = Math.ceil(totalCount / limit);
+
+  // Get paginated orders
+  const paginatedOrders = await db
+    .select()
+    .from(order)
+    .where(whereClause)
+    .limit(limit)
+    .offset(offset)
+    .orderBy(desc(order.createdAt));
+
+  // Fetch total amount of matching orders
+  const totalAmountResult = await db.select({
+    totalAmount: order.totalAmount,
+  }).from(order).where(whereClause);
+
+  const totalAmount = totalAmountResult.reduce((sum, order) => sum + order.totalAmount, 0);
+
+  return c.json(
+    {
+      orders: paginatedOrders,
+      totalCount,
+      totalAmount,
+      totalPages,
+      currentPage: page,
+      pageSize: limit,
+    },
+    HttpStatusCodes.OK,
+  );
 };

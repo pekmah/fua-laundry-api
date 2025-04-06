@@ -6,6 +6,8 @@ import { createErrorSchema, IdParamsSchema } from "stoker/openapi/schemas";
 import { createOrderSchema, createPaymentSchema, orderCreateWithRelationsSchema, orderNumberSchema, selectLaundryItemSchema, selectOrderSchema, selectPaymentSchema } from "@/db/schema/order";
 import { notFoundSchema } from "@/lib/constants";
 
+import { dateFilterSchema, orderReportResponseSchema, paginationSchema } from "./orders.schemas";
+
 const tags = ["Orders"];
 
 export const create = createRoute({
@@ -131,9 +133,33 @@ export const getOne = createRoute({
   },
 });
 
+export const getReport = createRoute({
+  path: "/orders/report",
+  method: "get",
+  tags,
+  request: {
+    query: dateFilterSchema.merge(paginationSchema).describe("Query parameters for filtering and pagination"),
+  },
+  responses: {
+    [HttpStatusCodes.OK]: jsonContent(
+      orderReportResponseSchema,
+      "The requested order",
+    ),
+    [HttpStatusCodes.BAD_REQUEST]: jsonContent(
+      notFoundSchema,
+      "Invalid date range error",
+    ),
+    [HttpStatusCodes.UNPROCESSABLE_ENTITY]: jsonContent(
+      createErrorSchema(orderNumberSchema),
+      "Invalid id error",
+    ),
+  },
+});
+
 export type Create = typeof create;
 export type MakePayment = typeof makePayment;
 export type List = typeof list;
 export type ListLaundryItems = typeof listLaundryItems;
 export type ListPayments = typeof listPayments;
 export type GetOne = typeof getOne;
+export type GetReport = typeof getReport;
