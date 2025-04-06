@@ -150,7 +150,7 @@ export const getReport = createRoute({
       "Invalid date range error",
     ),
     [HttpStatusCodes.UNPROCESSABLE_ENTITY]: jsonContent(
-      createErrorSchema(orderNumberSchema),
+      createErrorSchema(dateFilterSchema.merge(paginationSchema)),
       "Invalid id error",
     ),
   },

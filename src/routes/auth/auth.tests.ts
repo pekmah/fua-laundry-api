@@ -33,8 +33,11 @@ describe("auth routes", () => {
 
     it("validates required fields", async () => {
       const response = await client.auth.signup.$post({
-        // @ts-expect-error
-        json: {},
+        json: {
+          password: "",
+          name: "",
+          email: "",
+        },
       });
       expect(response.status).toBe(422);
       if (response.status === 422) {
@@ -67,8 +70,10 @@ describe("auth routes", () => {
   describe("POST /auth/login", () => {
     it("validates required fields", async () => {
       const response = await client.auth.login.$post({
-        // @ts-expect-error
-        json: {},
+        json: {
+          password: "",
+          email: "",
+        },
       });
       if (response.status === 422) {
         expect(response.status).toBe(422);
