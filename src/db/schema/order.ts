@@ -203,7 +203,7 @@ export const orderCreateWithRelationsSchema = z.object({
     laundryItems: z
       .array(
         createSelectSchema(laundryItem).extend({
-          laundryCategory: createSelectSchema(laundryCategories).optional(), // Include related laundry category
+          laundryCategory: z.any(), // Include related laundry category
         }),
       )
       .optional(),
