@@ -248,18 +248,26 @@ export const getReport: AppRouteHandler<GetReport> = async (c) => {
 
   const whereConditions = [];
 
+  // Ensure `from` and `to` are valid ISO date strings before using them
   if (from) {
-    whereConditions.push(gte(order.createdAt, new Date(from)));
+    const fromDate = new Date(from);
+    if (!Number.isNaN(fromDate.getTime())) {
+      whereConditions.push(gte(order.createdAt, fromDate)); // Use ISO string for database comparison
+    }
   }
 
   if (to) {
-    whereConditions.push(lte(order.createdAt, new Date(to)));
+    const toDate = new Date(to);
+    if (!Number.isNaN(toDate.getTime())) {
+      whereConditions.push(lte(order.createdAt, toDate)); // Use Date object for database comparison
+    }
   }
 
   const whereClause = whereConditions.length > 0 ? and(...whereConditions) : undefined;
 
   // Get total count
-  const totalCountResult = await db.select({ count: sql<number>`count(*)` })
+  const totalCountResult = await db
+    .select({ count: sql<number>`count(*)` })
     .from(order)
     .where(whereClause);
 
@@ -276,11 +284,12 @@ export const getReport: AppRouteHandler<GetReport> = async (c) => {
     .orderBy(desc(order.createdAt));
 
   // Fetch total amount of matching orders
-  const totalAmountResult = await db.select({
-    totalAmount: order.totalAmount,
-  }).from(order).where(whereClause);
+  const totalAmountResult = await db
+    .select({ totalAmount: sql<number>`sum(${order.totalAmount})` })
+    .from(order)
+    .where(whereClause);
 
-  const totalAmount = totalAmountResult.reduce((sum, order) => sum + order.totalAmount, 0);
+  const totalAmount = totalAmountResult[0]?.totalAmount ?? 0;
 
   return c.json(
     {
