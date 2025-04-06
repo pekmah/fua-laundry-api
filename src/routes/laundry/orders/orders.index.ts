@@ -7,9 +7,9 @@ const router = createRouter()
   .openapi(routes.create, handlers.create)
   .openapi(routes.makePayment, handlers.makePayment)
   .openapi(routes.list, handlers.list)
+  .openapi(routes.getReport, handlers.getReport)
   .openapi(routes.getOne, handlers.getOne)
   .openapi(routes.listLaundryItems, handlers.listLaundryItems)
-  .openapi(routes.listPayments, handlers.listPayments)
-  .openapi(routes.getReport, handlers.getReport);
+  .openapi(routes.listPayments, handlers.listPayments);
 
 export default router;
