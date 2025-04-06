@@ -249,11 +249,11 @@ export const getReport: AppRouteHandler<GetReport> = async (c) => {
   const whereConditions = [];
 
   if (from) {
-    whereConditions.push(gte(order.createdAt, new Date(from)));
+    whereConditions.push(gte(order.createdAt, new Date(from).getTime()));
   }
 
   if (to) {
-    whereConditions.push(lte(order.createdAt, new Date(to)));
+    whereConditions.push(lte(order.createdAt, new Date(to).getTime()));
   }
 
   const whereClause = whereConditions.length > 0 ? and(...whereConditions) : undefined;
