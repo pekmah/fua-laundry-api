@@ -85,7 +85,26 @@ export const create: AppRouteHandler<Create> = async (c) => {
     orderId: _order.id,
   });
 
-  return c.json({ message: "test", data: _order }, HttpStatusCodes.CREATED);
+  // Refetch the order with related data to return
+  const orderWithDetails = await db.query.order.findFirst({
+    where: eq(order.id, _order.id),
+    with: {
+      laundryItems: {
+        with: {
+          laundryCategory: true, // Include the related laundryCategory
+        },
+      },
+      payments: true,
+      logs: true,
+      images: true,
+    },
+  });
+
+  if (!orderWithDetails) {
+    return c.json({ message: "Order not found.", data: _order }, HttpStatusCodes.CREATED);
+  }
+
+  return c.json({ message: "Order created successfuly!", data: orderWithDetails }, HttpStatusCodes.CREATED);
 };
 
 export const makePayment: AppRouteHandler<MakePayment> = async (c) => {

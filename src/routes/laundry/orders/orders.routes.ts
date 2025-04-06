@@ -3,7 +3,7 @@ import * as HttpStatusCodes from "stoker/http-status-codes";
 import { jsonContent, jsonContentRequired } from "stoker/openapi/helpers";
 import { createErrorSchema, IdParamsSchema } from "stoker/openapi/schemas";
 
-import { createOrderSchema, createPaymentSchema, orderCreateSchema, orderNumberSchema, selectLaundryItemSchema, selectOrderSchema, selectPaymentSchema } from "@/db/schema/order";
+import { createOrderSchema, createPaymentSchema, orderCreateWithRelationsSchema, orderNumberSchema, selectLaundryItemSchema, selectOrderSchema, selectPaymentSchema } from "@/db/schema/order";
 import { notFoundSchema } from "@/lib/constants";
 
 const tags = ["Orders"];
@@ -20,7 +20,7 @@ export const create = createRoute({
   },
   responses: {
     [HttpStatusCodes.CREATED]: jsonContent(
-      orderCreateSchema,
+      orderCreateWithRelationsSchema,
       "The created order",
     ),
     [HttpStatusCodes.UNPROCESSABLE_ENTITY]: jsonContent(
