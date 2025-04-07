@@ -309,11 +309,13 @@ export const getReport: AppRouteHandler<GetReport> = async (c) => {
   return c.json(
     {
       orders: paginatedOrders,
-      totalCount,
       totalAmount,
-      totalPages,
-      currentPage: page,
-      pageSize: limit,
+      meta: {
+        pageSize: limit,
+        currentPage: page,
+        totalPages,
+        totalCount,
+      },
     },
     HttpStatusCodes.OK,
   );
