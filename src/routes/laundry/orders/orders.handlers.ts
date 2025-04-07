@@ -296,7 +296,7 @@ export const getReport: AppRouteHandler<GetReport> = async (c) => {
     .where(whereClause)
     .limit(limit)
     .offset(offset)
-    .orderBy(desc(order.createdAt));
+    .orderBy(desc(order.totalAmount));
 
   // Fetch total amount of matching orders
   const totalAmountResult = await db
