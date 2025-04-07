@@ -10,8 +10,8 @@ export const dateFilterSchema = z.object({
 
 // Pagination schema
 export const paginationSchema = z.object({
-  page: z.number().int().positive().default(1), // Page number, defaults to 1
-  limit: z.number().int().positive().max(100).default(DEFAULT_PAGE_SIZE), // Limit per page, defaults to 10, max 100
+  page: z.coerce.number().int().positive().default(1), // Coerce 'page' to a number, defaults to 1
+  limit: z.coerce.number().int().positive().max(100).default(DEFAULT_PAGE_SIZE), // Coerce 'limit' to a number, defaults to DEFAULT_PAGE_SIZE
 }).describe("Pagination parameters");
 
 // Order report fetch response schema
