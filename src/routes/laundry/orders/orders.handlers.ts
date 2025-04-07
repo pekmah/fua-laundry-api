@@ -248,6 +248,21 @@ export const getReport: AppRouteHandler<GetReport> = async (c) => {
 
   const whereConditions = [];
 
+  // validate from and to dates overlapping
+  if (from && to) {
+    const fromDate = new Date(from);
+    const toDate = new Date(to);
+
+    if (fromDate > toDate) {
+      return c.json(
+        {
+          message: "Invalid date range: 'from' date cannot be after 'to' date.",
+        },
+        HttpStatusCodes.BAD_REQUEST,
+      );
+    }
+  }
+
   // Ensure `from` and `to` are valid ISO date strings before using them
   if (from) {
     const fromDate = new Date(from);
