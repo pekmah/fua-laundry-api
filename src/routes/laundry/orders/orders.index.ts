@@ -10,6 +10,7 @@ const router = createRouter()
   .openapi(routes.getReport, handlers.getReport)
   .openapi(routes.getOne, handlers.getOne)
   .openapi(routes.listLaundryItems, handlers.listLaundryItems)
-  .openapi(routes.listPayments, handlers.listPayments);
+  .openapi(routes.listPayments, handlers.listPayments)
+  .openapi(routes.updateStatus, handlers.updateStatus);
 
 export default router;
