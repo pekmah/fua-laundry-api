@@ -296,11 +296,11 @@ export const getReport: AppRouteHandler<GetReport> = async (c) => {
     .where(whereClause)
     .limit(limit)
     .offset(offset)
-    .orderBy(desc(order.totalAmount));
+    .orderBy(desc(order.paymentAmount));
 
   // Fetch total amount of matching orders
   const totalAmountResult = await db
-    .select({ totalAmount: sql<number>`sum(${order.totalAmount})` })
+    .select({ totalAmount: sql<number>`sum(${order.paymentAmount})` })
     .from(order)
     .where(whereClause);
 
