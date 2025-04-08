@@ -6,6 +6,8 @@ import { createTextParameter, renderMetaUrl } from "./utils";
 
 export enum TemplateName {
   CREATE_LAUNDRY_ORDER = "laundry_order",
+  LAUNDRY_ORDER_COMPLETED = "laundry_order_complete",
+  LAUNDRY_ORDER_COLLECTED = "laundry_order_collected",
 
 }
 
@@ -16,9 +18,20 @@ interface OrderMesssage {
   totalAmount: string;
 
 }
+
+interface OrderMessageCompleteCollected {
+  customerName: string;
+  orderId: string;
+  date: string;
+
+}
 interface ISendWhatsappMessage {
   recipientPhone: string;
   payload: OrderMesssage;
+}
+interface ISendWhatsappMessageComplete {
+  recipientPhone: string;
+  payload: OrderMessageCompleteCollected;
 }
 
 interface IContact {
@@ -73,6 +86,114 @@ export async function sendWhatsappOrderMessage({
     type: "template",
     template: {
       name: TemplateName.CREATE_LAUNDRY_ORDER,
+      language: {
+        code: "en",
+      },
+      components,
+    },
+  };
+
+  const response = await fetch(`${url}/messages`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${env.META_API_KEY}`,
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const errorDetails = await response.json();
+
+    throw new Error(
+      `HTTP error! status: ${response.status}, details: ${JSON.stringify(
+        errorDetails,
+      )}`,
+    );
+  }
+
+  return await response.json();
+}
+
+export async function sendWhatsappCompleteOrderMessage({
+  recipientPhone,
+  payload,
+}: ISendWhatsappMessageComplete): Promise<IMessageResponse> {
+  const url = renderMetaUrl();
+
+  const components = [
+    {
+      type: "body",
+      parameters: [
+        createTextParameter(payload.customerName, "customer_name"),
+        createTextParameter(payload.orderId, "order_id"),
+        createTextParameter(payload.date, "date"),
+      ],
+    },
+
+  ];
+
+  const body = {
+    messaging_product: "whatsapp",
+    recipient_type: "individual",
+    to: recipientPhone,
+    type: "template",
+    template: {
+      name: TemplateName.LAUNDRY_ORDER_COMPLETED,
+      language: {
+        code: "en",
+      },
+      components,
+    },
+  };
+
+  const response = await fetch(`${url}/messages`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${env.META_API_KEY}`,
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const errorDetails = await response.json();
+
+    throw new Error(
+      `HTTP error! status: ${response.status}, details: ${JSON.stringify(
+        errorDetails,
+      )}`,
+    );
+  }
+
+  return await response.json();
+}
+
+export async function sendWhatsappCollectOrderMessage({
+  recipientPhone,
+  payload,
+}: ISendWhatsappMessageComplete): Promise<IMessageResponse> {
+  const url = renderMetaUrl();
+
+  const components = [
+    {
+      type: "body",
+      parameters: [
+        createTextParameter(payload.customerName, "customer_name"),
+        createTextParameter(payload.orderId, "order_id"),
+        createTextParameter(payload.date, "date"),
+      ],
+    },
+
+  ];
+
+  const body = {
+    messaging_product: "whatsapp",
+    recipient_type: "individual",
+    to: recipientPhone,
+    type: "template",
+    template: {
+      name: TemplateName.LAUNDRY_ORDER_COLLECTED,
       language: {
         code: "en",
       },

@@ -5,7 +5,7 @@ import type { AppRouteHandler } from "@/lib/types";
 
 import db from "@/db";
 import { image, laundryItem, log, message, order, payment } from "@/db/schema/order";
-import { sendOrderImagesMessage, sendWhatsappOrderMessage } from "@/lib/message";
+import { sendOrderImagesMessage, sendWhatsappCollectOrderMessage, sendWhatsappCompleteOrderMessage, sendWhatsappOrderMessage, TemplateName } from "@/lib/message";
 import { ORDER_STAGES } from "@/lib/stages";
 import { generateOrderId, validatePhoneNumber } from "@/lib/utils";
 
@@ -378,11 +378,45 @@ export const updateStatus: AppRouteHandler<UpdateStatus> = async (c) => {
       HttpStatusCodes.BAD_REQUEST,
     );
   }
+
   await db.insert(log).values({
     orderId: orderExists.id,
     stage: status,
     description: logDescription[status] || "Order status updated.",
   });
+
+  // send whatsapp message
+  const msg = status === ORDER_STAGES[3]
+    ? await sendWhatsappCompleteOrderMessage({
+      recipientPhone: orderExists.customerPhone,
+      payload: {
+        customerName: orderExists.customerName,
+        orderId: orderExists.orderNumber,
+        date: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toLocaleDateString("en-GB"),
+      },
+    })
+    : status === ORDER_STAGES[4]
+      ? await sendWhatsappCollectOrderMessage({
+        recipientPhone: orderExists.customerPhone,
+        payload: {
+          customerName: orderExists.customerName,
+          orderId: orderExists.orderNumber,
+          date: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toLocaleDateString("en-GB"),
+        },
+      })
+      : null;
+
+  if (msg) {
+  // save message
+    await db.insert(message).values({
+      orderId: orderExists.id,
+      status: msg.messages[0].message_status,
+      whatsappId: msg.messages[0].id,
+      recipient: orderExists.customerPhone,
+      templateName: status === ORDER_STAGES[3] ? TemplateName.LAUNDRY_ORDER_COMPLETED : TemplateName.LAUNDRY_ORDER_COLLECTED,
+      payload: JSON.stringify(msg),
+    });
+  }
 
   return c.json({
     message: "Order status updated successfully!",
