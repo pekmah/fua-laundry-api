@@ -126,7 +126,7 @@ export async function sendWhatsappCompleteOrderMessage({
       type: "body",
       parameters: [
         createTextParameter(payload.customerName, "customer_name"),
-        createTextParameter(payload.orderId, "order_id"),
+        createTextParameter(`#${payload.orderId}`, "order_id"),
         createTextParameter(payload.date, "date"),
       ],
     },
@@ -180,8 +180,8 @@ export async function sendWhatsappCollectOrderMessage({
       type: "body",
       parameters: [
         createTextParameter(payload.customerName, "customer_name"),
-        createTextParameter(payload.orderId, "order_id"),
-        createTextParameter(payload.date, "date"),
+        createTextParameter(`#${payload.orderId}`, "order_id"),
+        createTextParameter(` ${payload.date}`, "date"),
       ],
     },
 
