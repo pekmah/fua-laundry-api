@@ -163,7 +163,7 @@ export const updateStatus = createRoute({
   tags,
   request: {
     params: orderNumberSchema,
-    body: updateOrderStatusSchema,
+    body: jsonContentRequired(updateOrderStatusSchema, "The status to be updated"),
   },
   responses: {
     [HttpStatusCodes.OK]: jsonContent(

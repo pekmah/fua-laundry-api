@@ -1,5 +1,4 @@
 import { z } from "@hono/zod-openapi";
-import { jsonContentRequired } from "stoker/openapi/helpers";
 
 import { selectOrderSchema } from "@/db/schema/order";
 import { DEFAULT_PAGE_SIZE } from "@/lib/constants";
@@ -23,6 +22,6 @@ export const orderReportResponseSchema = paginationResponseSchema.extend({
 }).describe("Order report response schema with pagination");
 
 // Update order status request schema
-export const updateOrderStatusSchema = jsonContentRequired(z.object({
+export const updateOrderStatusSchema = z.object({
   status: z.enum(["completed", "collected"]).describe("The new status of the order"), // Restrict to specific values
-}).describe("Update order status request schema"), "The status to be updated");
+}).describe("Update order status request schema");
