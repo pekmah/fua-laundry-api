@@ -345,6 +345,26 @@ export const updateStatus: AppRouteHandler<UpdateStatus> = async (c) => {
     );
   }
 
+  // If status is collected check if order payment is cleared.
+  if (status === ORDER_STAGES[4]) {
+    const payments = await db.query.payment.findMany({
+      where(fields, operators) {
+        return operators.eq(fields.orderId, orderExists.id);
+      },
+    });
+
+    const totalPayments = payments.reduce((acc, payment) => acc + payment.amount, 0);
+
+    if (totalPayments < orderExists.paymentAmount) {
+      return c.json(
+        {
+          message: "Order payment not cleared. Cannot collect the order.",
+        },
+        HttpStatusCodes.BAD_REQUEST,
+      );
+    }
+  }
+
   const updatedOrder = await db
     .update(order)
     .set({ status })
