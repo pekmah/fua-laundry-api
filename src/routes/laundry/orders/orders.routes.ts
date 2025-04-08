@@ -6,7 +6,7 @@ import { createErrorSchema, IdParamsSchema } from "stoker/openapi/schemas";
 import { createOrderSchema, createPaymentSchema, orderCreateWithRelationsSchema, orderNumberSchema, selectLaundryItemSchema, selectOrderSchema, selectPaymentSchema } from "@/db/schema/order";
 import { notFoundSchema } from "@/lib/constants";
 
-import { dateFilterSchema, orderReportResponseSchema, paginationSchema } from "./orders.schemas";
+import { dateFilterSchema, orderReportResponseSchema, paginationSchema, updateOrderStatusSchema } from "./orders.schemas";
 
 const tags = ["Orders"];
 
@@ -156,6 +156,38 @@ export const getReport = createRoute({
   },
 });
 
+// Update status
+export const updateStatus = createRoute({
+  path: "/orders/{id}/status",
+  method: "put",
+  tags,
+  request: {
+    params: orderNumberSchema,
+    body: updateOrderStatusSchema,
+  },
+  responses: {
+    [HttpStatusCodes.OK]: jsonContent(
+      orderCreateWithRelationsSchema,
+      "The updated order",
+    ),
+    [HttpStatusCodes.NOT_FOUND]: jsonContent(
+      notFoundSchema,
+      "Order not found",
+    ),
+    [HttpStatusCodes.BAD_REQUEST]: jsonContent(
+      notFoundSchema,
+      "Order update failed",
+    ),
+    [HttpStatusCodes.UNPROCESSABLE_ENTITY]: jsonContent(
+      createErrorSchema(
+        updateOrderStatusSchema,
+      ).or(createErrorSchema(orderNumberSchema)),
+      "The validation error(s)",
+    ),
+  },
+
+});
+
 export type Create = typeof create;
 export type MakePayment = typeof makePayment;
 export type List = typeof list;
@@ -163,3 +195,4 @@ export type ListLaundryItems = typeof listLaundryItems;
 export type ListPayments = typeof listPayments;
 export type GetOne = typeof getOne;
 export type GetReport = typeof getReport;
+export type UpdateStatus = typeof updateStatus;

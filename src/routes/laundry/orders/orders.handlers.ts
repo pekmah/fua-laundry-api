@@ -9,7 +9,7 @@ import { sendOrderImagesMessage, sendWhatsappOrderMessage } from "@/lib/message"
 import { ORDER_STAGES } from "@/lib/stages";
 import { generateOrderId, validatePhoneNumber } from "@/lib/utils";
 
-import type { Create, GetOne, GetReport, List, ListLaundryItems, ListPayments, MakePayment } from "./orders.routes";
+import type { Create, GetOne, GetReport, List, ListLaundryItems, ListPayments, MakePayment, UpdateStatus } from "./orders.routes";
 
 export const create: AppRouteHandler<Create> = async (c) => {
   const { laundryItems, images, ...data } = c.req.valid("json");
@@ -319,4 +319,53 @@ export const getReport: AppRouteHandler<GetReport> = async (c) => {
     },
     HttpStatusCodes.OK,
   );
+};
+
+export const updateStatus: AppRouteHandler<UpdateStatus> = async (c) => {
+  const { id } = c.req.valid("param");
+  const { status } = c.req.valid("json");
+
+  const logDescription = {
+    [ORDER_STAGES[3]]: `Order completed and is ready for pickup.`,
+    [ORDER_STAGES[4]]: `Order collected by customer.`,
+  };
+
+  const orderExists = await db.query.order.findFirst({
+    where(fields, operators) {
+      return operators.eq(fields.orderNumber, id);
+    },
+  });
+
+  if (!orderExists) {
+    return c.json(
+      {
+        message: "Order not found.",
+      },
+      HttpStatusCodes.NOT_FOUND,
+    );
+  }
+
+  const updatedOrder = await db
+    .update(order)
+    .set({ status })
+    .where(eq(order.id, orderExists.id))
+    .returning();
+  if (updatedOrder.length === 0) {
+    return c.json(
+      {
+        message: "Failed to update order status.",
+      },
+      HttpStatusCodes.BAD_REQUEST,
+    );
+  }
+  await db.insert(log).values({
+    orderId: orderExists.id,
+    stage: status,
+    description: logDescription[status] || "Order status updated.",
+  });
+
+  return c.json({
+    message: "Order status updated successfully!",
+    data: updatedOrder[0],
+  }, HttpStatusCodes.OK);
 };
