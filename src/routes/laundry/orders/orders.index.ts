@@ -13,4 +13,7 @@ const router = createRouter()
   .openapi(routes.listPayments, handlers.listPayments)
   .openapi(routes.updateStatus, handlers.updateStatus);
 
+export const publicOrderRoutes = createRouter()
+  .openapi(routes.getOne, handlers.getOne);
+
 export default router;

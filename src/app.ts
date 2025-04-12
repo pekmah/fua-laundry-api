@@ -3,7 +3,7 @@ import createApp from "@/lib/create-app";
 import auth from "@/routes/auth/auth.index";
 import index from "@/routes/index.route";
 import laundryCategories from "@/routes/laundry/categories/categories.index";
-import orders from "@/routes/laundry/orders/orders.index";
+import orders, { publicOrderRoutes } from "@/routes/laundry/orders/orders.index";
 import tasks from "@/routes/tasks/tasks.index";
 import users from "@/routes/users/users.index";
 
@@ -22,6 +22,15 @@ const protectedRoutes = [
   laundryCategories,
   orders,
 ] as const;
+
+// public routes
+const publicRoutes = [
+  publicOrderRoutes,
+];
+
+publicRoutes.forEach((route) => {
+  app.route("/public", route);
+});
 
 protectedRoutes.forEach((route) => {
   app.use("*", authMiddleware).route("/", route);
